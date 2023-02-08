@@ -1,15 +1,36 @@
-const express = require('express')
+const express = require('express');
+const dotenv = require('dotenv');
+const connectDB = require('./utils/database');
+
+// Load environment variables from .env file
+dotenv.config();
+
+// Connect to the database
+connectDB();
+
 const app = express();
 
-app.set('view engine', 'ejs')
+// Parse incoming request bodies in a middleware before your handlers, available under the req.body property
+app.use(express.json());
 
-app.get('/', (req, res) => {
-    console.log('Here')
-    res.render('index', { text: 'Ecommerce' })
-})
+// Routes: example routes used, not official
+app.use('/api/products', require('./routes/products'));
+app.use('/api/orders', require('./routes/orders'));
+app.use('/api/users', require('./routes/users'));
 
-const userRouter = require('./routes/users')
+// Handle not found route
+app.use((req, res, next) => {
+    res.status(404).send({ message: 'Route not found' });
+});
 
-app.use('/users', userRouter)
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.message);
+    res.status(500).send({ message: 'Server error' });
+});
 
-app.listen(3000);
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`Server running on ${PORT}`);
+});
